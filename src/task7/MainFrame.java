@@ -131,7 +131,74 @@ public class MainFrame extends JFrame{
                         .addGap(MEDIUM_GAP)
                         .addComponent(sendButton)
                         .addContainerGap());
+        sendButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                sendMessage();
+            }
+        });
+    }
+    private void sendMessage(){
+        try {
+            // Получаем неообходимые параметры
+            final String senderName = textFieldFrom.getText();
+            final String destinationAddress = textFieldTo.getText();
+            final String message = textAreaOutgoing.getText();
+
+            // Проверяем, что поля не пустые
+            if(senderName.isEmpty()){
+                JOptionPane.showMessageDialog(this,
+                        "Введите адрес получателя","Ошибка",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            if(destinationAddress.isEmpty()){
+                JOptionPane.showMessageDialog(this,
+                        "Введите адрес узла получателя","Ошибка",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            if(message.isEmpty()){
+                JOptionPane.showMessageDialog(this,
+                        "Введите текст сообщения","Ошибка",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // Создаём сокет для соеденения
+            final Socket socket = new Socket(destinationAddress,SERVER_PORT);
+
+            // Открываем поток вывода данных
+            final DataOutputStream out =new DataOutputStream(socket.getOutputStream());
+
+            // Записываем в поток имя
+            out.writeUTF(senderName);
+
+            // Записываем в поток сообщение
+            out.writeUTF(message);
+
+            // Закрываем сокет
+            socket.close();
+
+            // Помещаем сообщение в текстовую область вывода
+            textAreaIncoming.append("Я ->" + destinationAddress +": " + message + "\n");
+
+            // Очищаем текстовую область ввода сообщения
+            textAreaOutgoing.setText("");
+
+        }catch (UnknownHostException e){
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(MainFrame.this,
+                    "Не удалось отправить сообщение: узел-адресант не найден", "Ошибка",
+                    JOptionPane.ERROR_MESSAGE);
+        }catch (IOException e){
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(MainFrame.this,
+                    "Не удалось отправить сообщение","Ошибка",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+    }
     }
 
 
-}
+
